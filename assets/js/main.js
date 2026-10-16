@@ -174,30 +174,34 @@ document.addEventListener('DOMContentLoaded', () => {
   const lightboxPrev = document.querySelector('.lightbox-prev');
   const lightboxNext = document.querySelector('.lightbox-next');
   
-  let currentImageIndex = 0;
-  const galleryImagesData = [];
+  let currentActiveIndex = 0;
+  let activeGalleryData = [];
 
-  galleryItems.forEach((item, index) => {
+  const updateActiveGalleryData = () => {
+    const visible = Array.from(galleryItems).filter(item => item.style.display !== 'none');
+    const targetItems = visible.length > 0 ? visible : Array.from(galleryItems);
+    activeGalleryData = targetItems.map(item => {
+      const img = item.querySelector('img');
+      const title = item.querySelector('.gallery-item-title')?.textContent || '';
+      return { src: img.getAttribute('src'), title };
+    });
+  };
+
+  galleryItems.forEach(item => {
     const imgWrapper = item.querySelector('.gallery-image-wrapper');
     const img = item.querySelector('img');
-    const title = item.querySelector('.gallery-item-title')?.textContent || '';
-    const src = img.getAttribute('src');
-
-    galleryImagesData.push({ src, title });
-
-    if (imgWrapper) {
+    if (imgWrapper && img) {
       imgWrapper.addEventListener('click', () => {
-        openLightbox(index);
+        updateActiveGalleryData();
+        const clickedSrc = img.getAttribute('src');
+        const foundIndex = activeGalleryData.findIndex(d => d.src === clickedSrc);
+        currentActiveIndex = foundIndex >= 0 ? foundIndex : 0;
+        updateLightboxContent();
+        lightboxModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
       });
     }
   });
-
-  const openLightbox = (index) => {
-    currentImageIndex = index;
-    updateLightboxContent();
-    lightboxModal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-  };
 
   const closeLightbox = () => {
     lightboxModal.classList.remove('active');
@@ -205,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const updateLightboxContent = () => {
-    const current = galleryImagesData[currentImageIndex];
+    const current = activeGalleryData[currentActiveIndex];
     if (current) {
       lightboxImg.src = current.src;
       lightboxCaption.textContent = current.title;
@@ -213,12 +217,14 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const showNextImage = () => {
-    currentImageIndex = (currentImageIndex + 1) % galleryImagesData.length;
+    if (activeGalleryData.length === 0) return;
+    currentActiveIndex = (currentActiveIndex + 1) % activeGalleryData.length;
     updateLightboxContent();
   };
 
   const showPrevImage = () => {
-    currentImageIndex = (currentImageIndex - 1 + galleryImagesData.length) % galleryImagesData.length;
+    if (activeGalleryData.length === 0) return;
+    currentActiveIndex = (currentActiveIndex - 1 + activeGalleryData.length) % activeGalleryData.length;
     updateLightboxContent();
   };
 

@@ -74,6 +74,68 @@ document.addEventListener('DOMContentLoaded', () => {
   updateBusinessStatus();
 
   // --------------------------------------------------------------------------
+  // 3.5 Interactive Hero Project Showcase Switcher
+  // --------------------------------------------------------------------------
+  const heroPills = document.querySelectorAll('.hero-pill');
+  const heroDisplayImg = document.getElementById('hero-display-img');
+  const heroDisplayCaption = document.getElementById('hero-display-caption');
+  const heroDisplaySub = document.getElementById('hero-display-sub');
+
+  if (heroPills.length > 0 && heroDisplayImg) {
+    let currentPillIndex = 0;
+    let autoRotateInterval;
+
+    const switchHeroProject = (index, isManual = false) => {
+      currentPillIndex = index;
+      heroPills.forEach((pill, idx) => {
+        if (idx === index) {
+          pill.classList.add('active');
+          pill.setAttribute('aria-selected', 'true');
+        } else {
+          pill.classList.remove('active');
+          pill.setAttribute('aria-selected', 'false');
+        }
+      });
+
+      const activePill = heroPills[index];
+      const newImg = activePill.getAttribute('data-img');
+      const newCaption = activePill.getAttribute('data-caption');
+      const newSub = activePill.getAttribute('data-sub');
+
+      heroDisplayImg.style.opacity = '0.35';
+      heroDisplayImg.style.transform = 'scale(0.98)';
+
+      setTimeout(() => {
+        heroDisplayImg.src = newImg;
+        if (heroDisplayCaption) heroDisplayCaption.textContent = newCaption;
+        if (heroDisplaySub) heroDisplaySub.textContent = newSub;
+        heroDisplayImg.style.opacity = '1';
+        heroDisplayImg.style.transform = 'scale(1)';
+      }, 180);
+
+      if (isManual) {
+        clearInterval(autoRotateInterval);
+        // Resume auto-rotation after 10s of inactivity
+        setTimeout(startAutoRotate, 10000);
+      }
+    };
+
+    heroPills.forEach((pill, idx) => {
+      pill.addEventListener('click', () => switchHeroProject(idx, true));
+    });
+
+    const startAutoRotate = () => {
+      clearInterval(autoRotateInterval);
+      autoRotateInterval = setInterval(() => {
+        const nextIndex = (currentPillIndex + 1) % heroPills.length;
+        switchHeroProject(nextIndex, false);
+      }, 5500);
+    };
+
+    startAutoRotate();
+  }
+
+  // --------------------------------------------------------------------------
   // 4. Project Gallery Filter & Lightbox
   // --------------------------------------------------------------------------
   const filterBtns = document.querySelectorAll('.gallery-filter-btn');

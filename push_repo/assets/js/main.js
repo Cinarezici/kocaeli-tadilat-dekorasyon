@@ -136,35 +136,179 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --------------------------------------------------------------------------
-  // 4. Project Gallery Filter & Lightbox
+  // 3.5. Services Collapsible Toggle ("Daha Fazla Hizmet Gör")
+  // --------------------------------------------------------------------------
+  const servicesGrid = document.getElementById('servicesGrid');
+  const serviceCards = document.querySelectorAll('.services-grid .service-card');
+  const toggleServicesBtn = document.getElementById('toggleServicesBtn');
+  const servicesLoadMoreWrapper = document.getElementById('servicesLoadMoreWrapper');
+
+  const INITIAL_SERVICES_LIMIT = 6;
+  let isServicesExpanded = false;
+
+  const updateServicesView = (scrollOnCollapse = false) => {
+    const totalServices = serviceCards.length;
+
+    serviceCards.forEach((card, index) => {
+      if (isServicesExpanded || index < INITIAL_SERVICES_LIMIT) {
+        card.style.display = 'flex';
+        card.removeAttribute('hidden');
+        setTimeout(() => {
+          card.style.opacity = '1';
+          card.style.transform = 'translateY(0)';
+        }, 30);
+      } else {
+        card.style.display = 'none';
+        card.setAttribute('hidden', 'until-found');
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(15px)';
+      }
+    });
+
+    if (toggleServicesBtn && servicesLoadMoreWrapper) {
+      if (totalServices > INITIAL_SERVICES_LIMIT) {
+        servicesLoadMoreWrapper.style.display = 'flex';
+        const remaining = totalServices - INITIAL_SERVICES_LIMIT;
+        const btnText = toggleServicesBtn.querySelector('.btn-text');
+        if (isServicesExpanded) {
+          if (btnText) btnText.textContent = 'Daha Az Hizmet Göster';
+          toggleServicesBtn.setAttribute('aria-expanded', 'true');
+        } else {
+          if (btnText) btnText.textContent = `Daha Fazla Hizmet Gör (${remaining} Hizmet Daha)`;
+          toggleServicesBtn.setAttribute('aria-expanded', 'false');
+        }
+      } else {
+        servicesLoadMoreWrapper.style.display = 'none';
+      }
+    }
+
+    if (scrollOnCollapse) {
+      const servicesSection = document.getElementById('hizmetlerimiz');
+      if (servicesSection) {
+        servicesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  };
+
+  if (toggleServicesBtn) {
+    toggleServicesBtn.addEventListener('click', () => {
+      isServicesExpanded = !isServicesExpanded;
+      updateServicesView(!isServicesExpanded);
+    });
+  }
+
+  // Support native 'beforematch' for Find in page (modern-web-guidance: search-hidden-content)
+  if (servicesGrid) {
+    servicesGrid.addEventListener('beforematch', () => {
+      if (!isServicesExpanded) {
+        isServicesExpanded = true;
+        updateServicesView(false);
+      }
+    });
+  }
+
+  if (serviceCards.length > 0) {
+    updateServicesView(false);
+  }
+
+  // --------------------------------------------------------------------------
+  // 4. Project Gallery Filter, Pagination & Lightbox
   // --------------------------------------------------------------------------
   const filterBtns = document.querySelectorAll('.gallery-filter-btn');
   const galleryItems = document.querySelectorAll('.gallery-item');
+  const galleryGrid = document.getElementById('galleryGrid');
+  const toggleGalleryBtn = document.getElementById('toggleGalleryBtn');
+  const galleryLoadMoreWrapper = document.getElementById('galleryLoadMoreWrapper');
+
+  const INITIAL_GALLERY_LIMIT = 6;
+  let currentGalleryFilter = 'all';
+  let isGalleryExpanded = false;
+
+  const updateGalleryView = (scrollOnCollapse = false) => {
+    let matchingItems = [];
+    galleryItems.forEach(item => {
+      const itemCategory = item.getAttribute('data-category');
+      if (currentGalleryFilter === 'all' || itemCategory === currentGalleryFilter) {
+        matchingItems.push(item);
+      } else {
+        item.style.display = 'none';
+        item.removeAttribute('hidden');
+      }
+    });
+
+    const totalMatching = matchingItems.length;
+
+    matchingItems.forEach((item, index) => {
+      if (isGalleryExpanded || index < INITIAL_GALLERY_LIMIT) {
+        item.style.display = 'flex';
+        item.removeAttribute('hidden');
+        setTimeout(() => {
+          item.style.opacity = '1';
+          item.style.transform = 'translateY(0)';
+        }, 30);
+      } else {
+        item.style.display = 'none';
+        item.setAttribute('hidden', 'until-found');
+        item.style.opacity = '0';
+        item.style.transform = 'translateY(15px)';
+      }
+    });
+
+    if (toggleGalleryBtn && galleryLoadMoreWrapper) {
+      if (totalMatching > INITIAL_GALLERY_LIMIT) {
+        galleryLoadMoreWrapper.style.display = 'flex';
+        const remainingCount = totalMatching - INITIAL_GALLERY_LIMIT;
+        const btnText = toggleGalleryBtn.querySelector('.btn-text');
+        if (isGalleryExpanded) {
+          if (btnText) btnText.textContent = 'Daha Az Proje Göster';
+          toggleGalleryBtn.setAttribute('aria-expanded', 'true');
+        } else {
+          if (btnText) btnText.textContent = `Daha Fazla Proje Gör (${remainingCount} Proje Daha)`;
+          toggleGalleryBtn.setAttribute('aria-expanded', 'false');
+        }
+      } else {
+        galleryLoadMoreWrapper.style.display = 'none';
+      }
+    }
+
+    if (scrollOnCollapse) {
+      const gallerySection = document.getElementById('projelerimiz');
+      if (gallerySection) {
+        gallerySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  };
+
+  if (toggleGalleryBtn) {
+    toggleGalleryBtn.addEventListener('click', () => {
+      isGalleryExpanded = !isGalleryExpanded;
+      updateGalleryView(!isGalleryExpanded);
+    });
+  }
+
+  // Support native 'beforematch' for Find in page (modern-web-guidance: search-hidden-content)
+  if (galleryGrid) {
+    galleryGrid.addEventListener('beforematch', () => {
+      if (!isGalleryExpanded) {
+        isGalleryExpanded = true;
+        updateGalleryView(false);
+      }
+    });
+  }
 
   filterBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       filterBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      const filterValue = btn.getAttribute('data-filter');
-
-      galleryItems.forEach(item => {
-        const itemCategory = item.getAttribute('data-category');
-        if (filterValue === 'all' || itemCategory === filterValue) {
-          item.style.display = 'flex';
-          setTimeout(() => {
-            item.style.opacity = '1';
-            item.style.transform = 'translateY(0)';
-          }, 50);
-        } else {
-          item.style.opacity = '0';
-          item.style.transform = 'translateY(15px)';
-          setTimeout(() => {
-            item.style.display = 'none';
-          }, 250);
-        }
-      });
+      currentGalleryFilter = btn.getAttribute('data-filter');
+      isGalleryExpanded = false; // Reset to initial 6 cards on category switch
+      updateGalleryView(false);
     });
   });
+
+  // Initialize gallery view
+  updateGalleryView(false);
+
 
   // Lightbox Implementation
   const lightboxModal = document.querySelector('.lightbox-modal');
